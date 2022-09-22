@@ -1,0 +1,19 @@
+version: "3.9"  # optional since v1.27.0
+services: 
+  # Collector
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    volumes:
+      - ./config/config.yaml:/etc/otelcol/config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP http receiver
+    environment:
+      - HONEYCOMB_API_KEY=${HONEYCOMB_API_KEY}
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true

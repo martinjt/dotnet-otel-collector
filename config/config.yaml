@@ -1,0 +1,59 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+processors:
+  batch:
+  attributes/collector_info:
+    actions:
+      - key: collector.hostname
+        value: $HOSTNAME
+        action: insert
+      - key: azure.container_app.revision
+        value: $CONTAINER_APP_REVISION
+        action: insert
+      - key: azure.container_app.name
+        value: $CONTAINER_APP_REVISION
+        action: insert
+      - key: source.blog
+        value: "true"
+        action: insert
+  filter/healthcheck:
+    spans:
+      exclude:
+        match_type: strict
+        attributes:
+          - Key: http.target
+            Value: /health
+
+exporters:
+  otlp:
+    endpoint: "api.honeycomb.io:443"
+    headers:
+      "x-honeycomb-team": "$HONEYCOMB_API_KEY"
+  otlp/logs:
+    endpoint: "api.honeycomb.io:443"
+    headers:
+      "x-honeycomb-team": "$HONEYCOMB_API_KEY"
+      "x-honeycomb-dataset": "$HONEYCOMB_LOGS_DATASET"
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch,attributes/collector_info,filter/healthcheck]
+      exporters: [otlp,otlp/jaeger]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/logs]
