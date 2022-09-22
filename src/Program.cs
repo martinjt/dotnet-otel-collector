@@ -10,10 +10,7 @@ builder.Services.AddOpenTelemetryTracing(builder => {
     builder
         .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("dotnet-otel-collector"))
         .AddAspNetCoreInstrumentation()
-        .AddOtlpExporter(o => {
-            o.Endpoint = new Uri("http://localhost:4318/v1/traces");
-            o.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
-        });
+        .AddOtlpExporter();
 });
 
 var app = builder.Build();
